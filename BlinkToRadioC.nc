@@ -10,6 +10,7 @@ module BlinkToRadioC {
   uses interface AMSend;
   uses interface Receive;
   uses interface SplitControl as AMControl;
+  uses interface Car;
 }
 implementation {
 
@@ -74,6 +75,13 @@ implementation {
   event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
     if (len == sizeof(BlinkToRadioMsg)) {
       BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)payload;
+      //然后拿出对应的数据，决定call接口Car中对应的小车命令
+      /*switch(btrpkt->type){
+        case ():
+         call car.xxx(btrpkt->data);
+         break;
+        default:
+      }*/
       setLeds(btrpkt->counter);
     }
     return msg;

@@ -11,6 +11,8 @@ enum {
 typedef nx_struct BlinkToRadioMsg {
   nx_uint16_t nodeid;
   nx_uint16_t counter;
+  nx_uint16_t type; //类型位
+  nx_uint16_t data; //数据位
 } BlinkToRadioMsg;
 
 #endif

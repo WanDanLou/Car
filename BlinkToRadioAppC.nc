@@ -12,6 +12,7 @@ implementation {
   components ActiveMessageC;
   components new AMSenderC(AM_BLINKTORADIO);
   components new AMReceiverC(AM_BLINKTORADIO);
+  components new CarC() as Car
 
   App.Boot -> MainC;
   App.Leds -> LedsC;
@@ -21,4 +22,5 @@ implementation {
   App.AMControl -> ActiveMessageC;
   App.AMSend -> AMSenderC;
   App.Receive -> AMReceiverC;
+  APP.Car -> Car;
 }
