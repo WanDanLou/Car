@@ -29,7 +29,7 @@ implementation {
     call Usart.enableUart();
     U0CTL &= ~SYNC；
     for(int i = 0; i < 8; i++){
-      call Usart.tx( byte );
+      call Usart.tx( data );
       while(call Usart.isTxEmpty() == FALSE);
     }
     call Resource.release();
@@ -39,21 +39,21 @@ implementation {
     data[2] = status;
     data[3] = value/256;
     data[4] = value%256;
-    call Resource.request();
+    return call Resource.request();
   }
   command error_r Car.Angle_Senc(uint16_t value){
     status = angle2Type;
     data[2] = status;
     data[3] = value/256;
     data[4] = value%256;
-    call Resource.request();
+    return call Resource.request();
   }
   command error_r Car.Angle_Third(uint16_t value){
-      status = angle3Type;
-      data[2] = status;
-      data[3] = value/256;
-      data[4] = value%256;
-      call Resource.request();
+    status = angle3Type;
+    data[2] = status;
+    data[3] = value/256;
+    data[4] = value%256;
+    return call Resource.request();
   }
   command error_r Car.Forward(uint16_t value){}
   command error_r Car.Back(uint16_t value){}
