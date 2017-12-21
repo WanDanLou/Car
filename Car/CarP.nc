@@ -1,6 +1,6 @@
 #include <Timer.h>
 #include "msp430usart.h"
-module CarC {
+module CarP {
   provides{
     interface Car;
   }
@@ -28,11 +28,13 @@ implementation {
     call Usart.setModeUart(config);
     call Usart.enableUart();
     U0CTL &= ~SYNC；
-    for(int i = 0; i < 8; i++){
-      call Usart.tx( data );
-      while(call Usart.isTxEmpty() == FALSE);
+    atomic{
+      for(int i = 0; i < 8; i++){
+        call Usart.tx( data[i] );
+        while(call Usart.isTxEmpty() == FALSE);
+      }
+      call Resource.release();
     }
-    call Resource.release();
   }
   command error_t Car.Angle(uint16_t value){
     status = angleType;
