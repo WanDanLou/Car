@@ -1,4 +1,4 @@
-PortB#include <Timer.h>
+#include <Timer.h>
 #include "msp430usart.h"
 module ButtonP {
   provides{
