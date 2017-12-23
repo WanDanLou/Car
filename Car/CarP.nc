@@ -5,6 +5,7 @@ module CarP @safe(){
   }
   uses{
     interface Resource;
+    interface Leds;
     interface HplMsp430GeneralIO as Port20;
     interface HplMsp430Usart as Usart;
     interface HplMsp430UsartInterrupts as Interrupts;
@@ -24,7 +25,7 @@ implementation {
   };
   
   uint16_t status;
-  uint8_t data[9] = {1,2,0,0,0,256,256,0};
+  uint8_t data[8] = {1,2,0,0,0,255,255,0};
 
   async event void Interrupts.rxDone(uint8_t t) {}
   async event void Interrupts.txDone() {}
@@ -32,27 +33,26 @@ implementation {
   event void Resource.granted() {
     msp430_uart_union_config_t config = {{ubr: UBR_1MHZ_115200, umctl: UBR_1MHZ_115200, ssel: 0x02, pena: 0, pev: 0, spb: 0,
     clen: 1, listen: 0, mm: 0, ckpl: 0, urxse: 0, urxeie: 0, urxwie: 0, utxe : 1, urxe : 1 }};
-    int i = 0;
     call Usart.setModeUart(&config);
     call Usart.enableUart();
     U0CTL &= ~SYNC;
-    atomic{
-        call Usart.tx( data[0] );
-        while(call Usart.isTxEmpty() == FALSE);
-        call Usart.tx( data[1] );
-        while(call Usart.isTxEmpty() == FALSE);
-        call Usart.tx( data[2] );
-        while(call Usart.isTxEmpty() == FALSE);
-        call Usart.tx( data[3] );
-        while(call Usart.isTxEmpty() == FALSE);
-        call Usart.tx( data[4] );
-        while(call Usart.isTxEmpty() == FALSE);
-        call Usart.tx( data[5] );
-        while(call Usart.isTxEmpty() == FALSE);
-        call Usart.tx( data[6] );
-        while(call Usart.isTxEmpty() == FALSE);
-        call Usart.tx( data[7] );
-    }
+    while(!(call Usart.isTxEmpty())){}
+    call Usart.tx( data[0] );
+    while(!(call Usart.isTxEmpty())){}
+    call Usart.tx( data[1] );
+    while(!(call Usart.isTxEmpty())){}
+    call Usart.tx( data[2] );
+    while(!(call Usart.isTxEmpty())){}
+    call Usart.tx( data[3] );
+    while(!(call Usart.isTxEmpty())){}
+    call Usart.tx( data[4] );
+    while(!(call Usart.isTxEmpty())){}
+    call Usart.tx( data[5] );
+    while(!(call Usart.isTxEmpty())){}
+    call Usart.tx( data[6] );
+    while(!(call Usart.isTxEmpty())){}
+    call Usart.tx( data[7] );
+    
     call Resource.release();
   }
   command error_t Car.Angle(uint16_t value){
@@ -80,7 +80,7 @@ implementation {
     status = forwardType;
     data[2] = status;
     data[3] = value/256;
-    data[4] = value%256;
+    data[4] = value%255;
     return call Resource.request();
   }
   command error_t Car.Back(uint16_t value){
@@ -123,3 +123,4 @@ implementation {
   command error_t Car.InitRightServo(uint16_t value){}
   command error_t Car.InitMidServo(uint16_t value){}
 }
+

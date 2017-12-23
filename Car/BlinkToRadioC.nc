@@ -51,18 +51,55 @@ implementation {
 
   event void Timer0.fired() {
     int type = 0;
+    int angle = 2000;
     counter++;
+    type = counter%8;
+    type += 1;
+    /*
+    switch(type){
+        case 1:
+        type = counter*50;
+        angle += type;
+        call Car.Angle(angle);
+        break;
+        case 2:
+        call Car.Forward(500);
+        call Leds.led1Toggle();
+        break;
+        case 3:
+        call Car.Back(500);
+        call Leds.led2Toggle();
+        break;
+        case 4:
+        call Car.Left(500);
+        break;
+        case 5:
+        call Car.Right(500);
+        break;
+        case 6:
+        call Car.Pause();
+        break;
+        case 7:
+        type = counter*50;
+        angle += type;
+        call Car.Angle_Senc(angle);
+        break;
+        case 8:
+        call Car.Angle_Third(type);
+        break;
+        default:
+      }*/
+    
     if (!busy) {
       BlinkToRadioMsg* btrpkt =
 	(BlinkToRadioMsg*)(call Packet.getPayload(&pkt, sizeof(BlinkToRadioMsg)));
       if (btrpkt == NULL) {
 	return;
       }
-      type = counter%4;
-      type += 2;
       btrpkt->type = type;
       btrpkt->data = 500;
-      call Leds.led0Toggle();
+      if(type == 1 || type == 7)
+          btrpkt->data += counter*50;
       if (call AMSend.send(AM_BROADCAST_ADDR,
           &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
         busy = TRUE;
@@ -93,11 +130,9 @@ implementation {
         break;
         case 3:
         call Car.Back(btrpkt->data);
-        call Leds.led1Toggle();
         break;
         case 4:
         call Car.Left(btrpkt->data);
-        call Leds.led1Toggle();
         break;
         case 5:
         call Car.Right(btrpkt->data);
@@ -117,3 +152,4 @@ implementation {
     return msg;
   }
 }
+

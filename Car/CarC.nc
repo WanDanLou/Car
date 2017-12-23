@@ -5,10 +5,12 @@ configuration CarC {
 implementation {
   components CarP as APP;
   components new Msp430Uart0C() as Msp430Uart0C;
+  components LedsC;
   components HplMsp430GeneralIOC as GIO;
   components HplMsp430Usart0C as UsartC; //HplMsp430Usart HplMsp430UsartInterrupts
   Car = APP;
   APP.Resource -> Msp430Uart0C;
+  APP.Leds -> LedsC;
   APP.Port20 -> GIO.Port20;
   APP.Usart -> UsartC;
   APP.Interrupts -> UsartC;
