@@ -1,17 +1,17 @@
 #include <Timer.h>
 #include "msp430usart.h"
-module ButtonP {
+generic module ButtonP() {
   provides{
     interface Button;
   }
   uses {
     //CarC要在Car.nc之外要使用的接口
-    interface HplMspGeneralIO as PortA;
-    interface HplMspGeneralIO as PortB;
-    interface HplMspGeneralIO as PortC;
-    interface HplMspGeneralIO as PortD;
-    interface HplMspGeneralIO as PortE;
-    interface HplMspGeneralIO as PortF;
+    interface HplMsp430GeneralIO as PortA;
+    interface HplMsp430GeneralIO as PortB;
+    interface HplMsp430GeneralIO as PortC;
+    interface HplMsp430GeneralIO as PortD;
+    interface HplMsp430GeneralIO as PortE;
+    interface HplMsp430GeneralIO as PortF;
   }
 }
 implementation{
@@ -33,42 +33,42 @@ implementation{
   command void Button.Stop(){}
   default event void Button.StopDone(error_t error){}
   command void Button.PinValueA(){
-    if(call PortA.get()){
+    if(!call PortA.get()){
       signal Button.PinValueADone(SUCCESS);
     }
     else signal Button.PinValueADone(FAIL);
   }
   default event void Button.PinValueADone(error_t error){}
   command void Button.PinValueB(){
-    if(call PortB.get()){
+    if(!call PortB.get()){
       signal Button.PinValueBDone(SUCCESS);
     }
     else signal Button.PinValueBDone(FAIL);
   }
   default event void Button.PinValueBDone(error_t error){}
   command void Button.PinValueC(){
-    if(call PortC.get()){
+    if(!call PortC.get()){
       signal Button.PinValueCDone(SUCCESS);
     }
     else signal Button.PinValueCDone(FAIL);
   }
   default event void Button.PinValueCDone(error_t error){}
   command void Button.PinValueD(){
-    if(call PortD.get()){
+    if(!call PortD.get()){
       signal Button.PinValueDDone(SUCCESS);
     }
     else signal Button.PinValueDDone(FAIL);
   }
   default event void Button.PinValueDDone(error_t error){}
   command void Button.PinValueE(){
-    if(call PortE.get()){
+    if(!call PortE.get()){
       signal Button.PinValueEDone(SUCCESS);
     }
     else signal Button.PinValueEDone(FAIL);
   }
   default event void Button.PinValueEDone(error_t error){}
   command void Button.PinValueF(){
-    if(call PortF.get()){
+    if(!call PortF.get()){
       signal Button.PinValueFDone(SUCCESS);
     }
     else signal Button.PinValueFDone(FAIL);

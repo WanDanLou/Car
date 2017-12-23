@@ -1,7 +1,7 @@
 #include <Msp430Adc12.h>
 #include <Timer.h>
 
-generic configuration JoyStickP {
+generic configuration JoyStickC() {
   provides interface Read<uint16_t> as Read1;
   provides interface Read<uint16_t> as Read2;
 }
@@ -11,6 +11,6 @@ implementation {
   components JoyStickP;
   Read1 = AdcReadClientC1.Read;
   Read2 = AdcReadClientC2.Read;
-  AdcReadClientC1.AdcConfigure -> JoyStickC.AdcConfigure1;
-  AdcReadClientC2.AdcConfigure -> JoyStickC.AdcConfigure2;
+  AdcReadClientC1.AdcConfigure -> JoyStickP.AdcConfigure1;
+  AdcReadClientC2.AdcConfigure -> JoyStickP.AdcConfigure2;
 }
