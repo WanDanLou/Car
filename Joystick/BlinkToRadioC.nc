@@ -76,124 +76,6 @@ implementation {
     call Button.PinValueF();
     call Read1.read();
     call Read2.read();
-    bool left, right, forward, back;
-    left = right = forward = back = FALSE;
-    if(readX == TRUE && readY = TRUE){
-      if(joyStickY <= 0xFF8 - 0x30){
-        forward = TRUE;
-      }
-      else if(joyStickY >= 0xFF8 + 0x30){
-        back = TRUE;
-      }
-      if(joyStickX <= 0xFF8 - 0x30){
-        left = TRUE;
-      }
-      else if(joyStickX >= 0xFF8 + 0x30){
-        right = TRUE;
-      }
-      if(forward == TRUE){
-        if (!busy) {
-          ControlMsg* btrpkt =
-      (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-          if (btrpkt == NULL) {
-      return;
-          }
-          btrpkt->nodeid = TOS_NODE_ID;
-          btrpkt->type = forwardType;
-          btrpkt->op = 1;
-          btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-          if (call AMSend.send(AM_BROADCAST_ADDR,
-              &pkt, sizeof(ControlMsg)) == SUCCESS) {
-            busy = TRUE;
-          }
-        }
-      }
-      else if(back == TRUE){
-        if (!busy) {
-          ControlMsg* btrpkt =
-      (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-          if (btrpkt == NULL) {
-      return;
-          }
-          btrpkt->nodeid = TOS_NODE_ID;
-          btrpkt->type = backType;
-          btrpkt->op = 1;
-          btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-          if (call AMSend.send(AM_BROADCAST_ADDR,
-              &pkt, sizeof(ControlMsg)) == SUCCESS) {
-            busy = TRUE;
-          }
-        }
-      }
-      else if(back == TRUE){
-        if (!busy) {
-          ControlMsg* btrpkt =
-      (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-          if (btrpkt == NULL) {
-      return;
-          }
-          btrpkt->nodeid = TOS_NODE_ID;
-          btrpkt->type = backType;
-          btrpkt->op = 1;
-          btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-          if (call AMSend.send(AM_BROADCAST_ADDR,
-              &pkt, sizeof(ControlMsg)) == SUCCESS) {
-            busy = TRUE;
-          }
-        }
-      }
-      if(left == TRUE){
-        if (!busy) {
-          ControlMsg* btrpkt =
-      (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-          if (btrpkt == NULL) {
-      return;
-          }
-          btrpkt->nodeid = TOS_NODE_ID;
-          btrpkt->type = leftType;
-          btrpkt->op = 1;
-          btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-          if (call AMSend.send(AM_BROADCAST_ADDR,
-              &pkt, sizeof(ControlMsg)) == SUCCESS) {
-            busy = TRUE;
-          }
-        }
-      }
-      else if(right == TRUE){
-        if (!busy) {
-          ControlMsg* btrpkt =
-      (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-          if (btrpkt == NULL) {
-      return;
-          }
-          btrpkt->nodeid = TOS_NODE_ID;
-          btrpkt->type = rightType;
-          btrpkt->op = 1;
-          btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-          if (call AMSend.send(AM_BROADCAST_ADDR,
-              &pkt, sizeof(ControlMsg)) == SUCCESS) {
-            busy = TRUE;
-          }
-        }
-      }
-      if(right = FALSE && left = FALSE && forward = FALSE && back == FALSE){
-        if (!busy) {
-          ControlMsg* btrpkt =
-      (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-          if (btrpkt == NULL) {
-      return;
-          }
-          btrpkt->nodeid = TOS_NODE_ID;
-          btrpkt->type = pauseType;
-          btrpkt->op = 1;
-          btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-          if (call AMSend.send(AM_BROADCAST_ADDR,
-              &pkt, sizeof(ControlMsg)) == SUCCESS) {
-            busy = TRUE;
-          }
-        }
-      }
-    }
   }
 
   event void AMSend.sendDone(message_t* msg, error_t err) {
@@ -339,6 +221,126 @@ implementation {
     if(err == SUCCESS){
       joyStickX = value;
       readX = TRUE;
+      bool left, right, forward, back;
+      left = right = forward = back = FALSE;
+      if(readX == TRUE && readY = TRUE){
+        if(joyStickY <= 0xFF8 - 0x30){
+          forward = TRUE;
+        }
+        else if(joyStickY >= 0xFF8 + 0x30){
+          back = TRUE;
+        }
+        if(joyStickX <= 0xFF8 - 0x30){
+          left = TRUE;
+        }
+        else if(joyStickX >= 0xFF8 + 0x30){
+          right = TRUE;
+        }
+        if(forward == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = forwardType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        else if(back == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = backType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        else if(back == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = backType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        if(left == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = leftType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        else if(right == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = rightType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        if(right = FALSE && left = FALSE && forward = FALSE && back == FALSE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = pauseType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        readX = FALSE;
+        readY = FALSE;
+      }
     }
   }
 
@@ -347,6 +349,126 @@ implementation {
     if(err == SUCCESS){
       joyStickY = value
       readY = TRUE;
+      bool left, right, forward, back;
+      left = right = forward = back = FALSE;
+      if(readX == TRUE && readY = TRUE){
+        if(joyStickY <= 0xFF8 - 0x30){
+          forward = TRUE;
+        }
+        else if(joyStickY >= 0xFF8 + 0x30){
+          back = TRUE;
+        }
+        if(joyStickX <= 0xFF8 - 0x30){
+          left = TRUE;
+        }
+        else if(joyStickX >= 0xFF8 + 0x30){
+          right = TRUE;
+        }
+        if(forward == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = forwardType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        else if(back == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = backType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        else if(back == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = backType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        if(left == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = leftType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        else if(right == TRUE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = rightType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        if(right = FALSE && left = FALSE && forward = FALSE && back == FALSE){
+          if (!busy) {
+            ControlMsg* btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+        return;
+            }
+            btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = pauseType;
+            btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            if (call AMSend.send(AM_BROADCAST_ADDR,
+                &pkt, sizeof(ControlMsg)) == SUCCESS) {
+              busy = TRUE;
+            }
+          }
+        }
+        readX = FALSE;
+        readY = FALSE;
+      }
     }
   }
 }

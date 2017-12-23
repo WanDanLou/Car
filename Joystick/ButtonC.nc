@@ -4,20 +4,17 @@ configuration ButtonC {
   provides{
     interface Button;
   }
-  uses {
-    //CarC要在Car.nc之外要使用的接口
-  }
 }
 implementation {
   components new ButtonP() as APP;
-  components new Msp430Uart0C();
+  //components new Msp430Uart0C();
   components HplMsp430GeneralIOC as GIO;
-  components HplMsp430Usart0C as UsartC; //HplMsp430Usart HplMsp430UsartInterrupts
+  //components HplMsp430Usart0C as UsartC; //HplMsp430Usart HplMsp430UsartInterrupts
   Button = APP;
-  APP.Resource = Msp430Uart0C.Resource;
+  /*APP.Resource = Msp430Uart0C.Resource;
   APP.ResourceRequested = Msp430Uart0C.ResourceRequested;
   APP.Usart = UsartC.HplMsp430Usart;
-  APP.Interrupts = UsartC.HplMsp430UsartInterrupts;
+  APP.Interrupts = UsartC.HplMsp430UsartInterrupts;*/
   APP.PortA = GIO.Port60;
   APP.PortB = GIO.Port21;
   APP.PortC = GIO.Port61;
