@@ -39,7 +39,7 @@ implementation {
 
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
-      call Timer0.startPeriodic(TIMER_PERIOD_MILLI);
+      call Timer0.startPeriodic(1000);
     }
     else {
       call AMControl.start();
@@ -50,6 +50,7 @@ implementation {
   }
 
   event void Timer0.fired() {
+    int type = 0;
     counter++;
     if (!busy) {
       BlinkToRadioMsg* btrpkt =
@@ -57,8 +58,11 @@ implementation {
       if (btrpkt == NULL) {
 	return;
       }
-      btrpkt->nodeid = TOS_NODE_ID;
-      btrpkt->counter = counter;
+      type = counter%4;
+      type += 2;
+      btrpkt->type = type;
+      btrpkt->data = 500;
+      call Leds.led0Toggle();
       if (call AMSend.send(AM_BROADCAST_ADDR,
           &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
         busy = TRUE;
@@ -72,17 +76,43 @@ implementation {
     }
   }
 
+  event void Car.readDone(error_t state, uint16_t data){}
+
   event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
     if (len == sizeof(BlinkToRadioMsg)) {
       BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)payload;
+      
       //然后拿出对应的数据，决定call接口Car中对应的小车命令
-      /*switch(btrpkt->type){
-        case ():
-         call car.xxx(btrpkt->data);
-         break;
+      switch(btrpkt->type){
+        case 1:
+        call Car.Angle(btrpkt->data);
+        break;
+        case 2:
+        call Car.Forward(btrpkt->data);
+        call Leds.led1Toggle();
+        break;
+        case 3:
+        call Car.Back(btrpkt->data);
+        call Leds.led1Toggle();
+        break;
+        case 4:
+        call Car.Left(btrpkt->data);
+        call Leds.led1Toggle();
+        break;
+        case 5:
+        call Car.Right(btrpkt->data);
+        break;
+        case 6:
+        call Car.Pause();
+        break;
+        case 7:
+        call Car.Angle_Senc(btrpkt->data);
+        break;
+        case 8:
+        call Car.Angle_Third(btrpkt->data);
+        break;
         default:
-      }*/
-      setLeds(btrpkt->counter);
+      }
     }
     return msg;
   }
