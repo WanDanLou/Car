@@ -148,8 +148,10 @@ implementation {
         break;
         default:
       }
+      setLeds(btrpkt->type);
     }
     return msg;
   }
 }
+
 
