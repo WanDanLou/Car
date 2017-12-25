@@ -113,7 +113,6 @@ implementation {
         break;
         case 2:
         call Car.Forward(btrpkt->data);
-        call Leds.led1Toggle();
         break;
         case 3:
         call Car.Back(btrpkt->data);
