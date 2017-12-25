@@ -5,6 +5,7 @@ module BlinkToRadioC {
   uses interface Boot;
   uses interface Leds;
   uses interface Timer<TMilli> as Timer0;
+  uses interface Timer<TMilli> as Timer1;
   uses interface Packet;
   uses interface AMPacket;
   uses interface AMSend;
@@ -21,7 +22,16 @@ implementation {
   uint16_t joyStickY;
   message_t pkt;
   message_t pkt2;
+  message_t sendMessage[6];
+  message_t* ONE_NOK sendQueue[6];
+  uint16_t send_point = 0;
+  uint16_t receive_point = 0;
+  uint16_t MIN_ANGLE = 500;
+  uint16_t MAX_ANGLE = 4500;
+  uint16_t angle1 = 3000;
+  uint16_t angle2 = 3000;
   bool busy = FALSE;
+  bool full = FALSE;
   bool readX = FALSE;
   bool readY = FALSE;
   enum{
@@ -52,12 +62,34 @@ implementation {
   }
 
   event void Boot.booted() {
+    uint8_t i;
+    call Button.Start();
     call AMControl.start();
+    for(i = 0 ; i < 6; i ++){
+        sendQueue[i] = &sendMessage[i];
+    }
+  }
+
+  task void SendTask(){
+    atomic{
+      if(send_point == receive_point && !full){
+        busy = FALSE;
+        return;
+      }
+      if(call AMSend.send(AM_BROADCAST_ADDR,sendQueue[send_point],sizeof(ControlMsg)) == SUCCESS){
+        call Leds.led2Toggle();
+        busy = FALSE;
+      }
+      else{
+        post SendTask();
+      }
+    }
   }
 
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
       call Timer0.startPeriodic(TIMER_PERIOD_MILLI);
+      call Timer1.startPeriodic(200);
     }
     else {
       call AMControl.start();
@@ -65,6 +97,14 @@ implementation {
   }
 
   event void AMControl.stopDone(error_t err) {
+  }
+
+
+  event void Timer1.fired(){
+    if(!busy){
+      post SendTask();
+      busy = TRUE;
+    }
   }
 
   event void Timer0.fired() {
@@ -78,9 +118,16 @@ implementation {
     call Read2.read();
   }
 
+
+
   event void AMSend.sendDone(message_t* msg, error_t err) {
-    if (&pkt == msg) {
+    if (&sendMessage[send_point] == msg) {
       busy = FALSE;
+      send_point ++;
+      if(send_point == 6){
+        send_point = 0;
+      }
+      full = FALSE;
     }
   }
 
@@ -92,125 +139,166 @@ implementation {
     return msg;
   }
 
-  event void Button.pinvalueADone(error_t err){
+  event void Button.PinValueADone(error_t err){
     if(err == SUCCESS){
       //发送按键a的命令
-      if (!busy) {
+      call Leds.led0Toggle();
+      if (!full) {
         ControlMsg* btrpkt =
-    (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+        (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
         if (btrpkt == NULL) {
-    return;
+          return;
         }
-        btrpkt->nodeid = TOS_NODE_ID;
+        //btrpkt->nodeid = TOS_NODE_ID;
         btrpkt->type = angleType;
-        btrpkt->op = 1;
-        btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-        if (call AMSend.send(AM_BROADCAST_ADDR,
-            &pkt, sizeof(ControlMsg)) == SUCCESS) {
-          busy = TRUE;
+        //btrpkt->op = 1;
+        angle1 -= 300;
+        if(angle1 <= MIN_ANGLE){
+          angle1 == MIN_ANGLE;
+        }
+        btrpkt->data = angle1;
+        receive_point ++;
+        if(receive_point == 6){
+          receive_point = 0;
+        }
+        if(receive_point == send_point){
+          full = TRUE;
         }
       }
     }
   }
 
-  event void Button.pinvalueBDone(error_t err){
+  event void Button.PinValueBDone(error_t err){
     if(err == SUCCESS){
-      //发送按键b的命令
-      if (!busy) {
+      //发送按键a的命令
+      call Leds.led0Toggle();
+      if (!full) {
         ControlMsg* btrpkt =
-    (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+        (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
         if (btrpkt == NULL) {
-    return;
+          return;
         }
-        btrpkt->nodeid = TOS_NODE_ID;
+        //btrpkt->nodeid = TOS_NODE_ID;
         btrpkt->type = angleType;
-        btrpkt->op = 0;
-        btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-        if (call AMSend.send(AM_BROADCAST_ADDR,
-            &pkt, sizeof(ControlMsg)) == SUCCESS) {
-          busy = TRUE;
+        //btrpkt->op = 0;
+        angle1 += 300;
+        if(angle1 >= MAX_ANGLE){
+          angle1 == MAX_ANGLE;
+        }
+        btrpkt->data = angle1;
+        receive_point ++;
+        if(receive_point == 6){
+          receive_point = 0;
+        }
+        if(receive_point == send_point){
+          full = TRUE;
         }
       }
     }
   }
 
-  event void Button.pinvalueCDone(error_t err){
+  event void Button.PinValueCDone(error_t err){
     if(err == SUCCESS){
-      //发送按键c的命令
-      if (!busy) {
+      //发送按键a的命令
+      call Leds.led0Toggle();
+      if (!full) {
         ControlMsg* btrpkt =
-    (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+        (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
         if (btrpkt == NULL) {
-    return;
+          return;
         }
-        btrpkt->nodeid = TOS_NODE_ID;
+        //btrpkt->nodeid = TOS_NODE_ID;
         btrpkt->type = angleType2;
-        btrpkt->op = 1;
-        btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-        if (call AMSend.send(AM_BROADCAST_ADDR,
-            &pkt, sizeof(ControlMsg)) == SUCCESS) {
-          busy = TRUE;
+        //btrpkt->op = 1;
+        angle2 += 300;
+        if(angle2 >= MAX_ANGLE){
+          angle2 == MAX_ANGLE;
+        }
+        btrpkt->data = angle2;
+        receive_point ++;
+        if(receive_point == 6){
+          receive_point = 0;
+        }
+        if(receive_point == send_point){
+          full = TRUE;
         }
       }
     }
   }
 
-  event void Button.pinvalueDDone(error_t err){
+  event void Button.PinValueDDone(error_t err){
     if(err == SUCCESS){
       //发送按键d的命令
     }
   }
 
-  event void Button.pinvalueEDone(error_t err){
+  event void Button.PinValueEDone(error_t err){
     if(err == SUCCESS){
-      //发送按键e的命令
-      if (!busy) {
+      //发送按键a的命令
+      call Leds.led0Toggle();
+      if (!full) {
         ControlMsg* btrpkt =
-    (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+        (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
         if (btrpkt == NULL) {
-    return;
+          return;
         }
-        btrpkt->nodeid = TOS_NODE_ID;
+        //btrpkt->nodeid = TOS_NODE_ID;
         btrpkt->type = angleType2;
-        btrpkt->op = 0;
-        btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-        if (call AMSend.send(AM_BROADCAST_ADDR,
-            &pkt, sizeof(ControlMsg)) == SUCCESS) {
-          busy = TRUE;
+        //btrpkt->op = 0;
+        angle2 -= 300;
+        if(angle2 >= MIN_ANGLE){
+          angle2 == MIN_ANGLE;
+        }
+        btrpkt->data = angle2;
+        receive_point ++;
+        if(receive_point == 6){
+          receive_point = 0;
+        }
+        if(receive_point == send_point){
+          full = TRUE;
         }
       }
     }
   }
 
-  event void Button.pinvalueFDone(error_t err){
+  event void Button.PinValueFDone(error_t err){
     if(err == SUCCESS){
-      //发送按键f的命令
-      if (!busy) {
+      //发送按键a的命令
+      call Leds.led0Toggle();
+      if (!full) {
         ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
+        (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
         if (btrpkt == NULL) {
           return;
         }
-        btrpkt->nodeid = TOS_NODE_ID;
+        //btrpkt->nodeid = TOS_NODE_ID;
         btrpkt->type = angleType;
-        btrpkt->op = 2;
-        btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-        if (call AMSend.send(AM_BROADCAST_ADDR,
-            &pkt, sizeof(ControlMsg)) == SUCCESS) {
-          busy = TRUE;
+        //btrpkt->op = 2;
+        angle1 = 3000;
+        btrpkt->data = angle1;
+        receive_point ++;
+        if(receive_point == 6){
+          receive_point = 0;
         }
-        ControlMsg* btrpkt2 =
-        (ControlMsg*)(call Packet.getPayload(&pkt2, sizeof(ControlMsg)));
-        if (btrpkt2 == NULL) {
+        if(receive_point == send_point){
+          full = TRUE;
+        }
+        btrpkt =
+        (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
+        if (btrpkt == NULL) {
           return;
         }
-        btrpkt2->nodeid = TOS_NODE_ID;
-        btrpkt2->type = angleType2;
-        btrpkt2->op = 2;
-        btrpkt2->data = 1000/AM_BROADCAST_ADDR*100;
-        if (call AMSend.send(AM_BROADCAST_ADDR,
-            &pkt2, sizeof(ControlMsg)) == SUCCESS) {
-          busy = TRUE;
+        //btrpkt->nodeid = TOS_NODE_ID;
+        btrpkt->type = angleType2;
+        //btrpkt->op = 2;
+        angle2 = 3000;
+        btrpkt->data = angle2;
+        receive_point ++;
+        if(receive_point == 6){
+          receive_point = 0;
+        }
+        if(receive_point == send_point){
+          full = TRUE;
         }
       }
     }
@@ -219,256 +307,144 @@ implementation {
   event void Read1.readDone(error_t err, uint16_t value){
     //遥感X输入
     if(err == SUCCESS){
+      bool left, right;
+      call Leds.led1Toggle();
       joyStickX = value;
       readX = TRUE;
-      bool left, right, forward, back;
-      left = right = forward = back = FALSE;
-      if(readX == TRUE && readY = TRUE){
-        if(joyStickY <= 0xFF8 - 0x30){
-          forward = TRUE;
-        }
-        else if(joyStickY >= 0xFF8 + 0x30){
-          back = TRUE;
-        }
-        if(joyStickX <= 0xFF8 - 0x30){
-          left = TRUE;
-        }
-        else if(joyStickX >= 0xFF8 + 0x30){
-          right = TRUE;
-        }
-        if(forward == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = forwardType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
+      left = FALSE;
+      right = FALSE;
+      if(joyStickX <= 2048 - 500){
+        left = TRUE;
+      }
+      else if(joyStickX >= 2048 + 500){
+        right = TRUE;
+      }
+      if(left == TRUE){
+        if (!full) {
+          ControlMsg* btrpkt =
+          (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
+          if (btrpkt == NULL) {
+            return;
+          }
+          //btrpkt->nodeid = TOS_NODE_ID;
+          btrpkt->type = forwardType;
+          //btrpkt->op = 1;
+          btrpkt->data = 400;
+          receive_point ++;
+          if(receive_point == 6){
+            receive_point = 0;
+          }
+          if(receive_point == send_point){
+            full = TRUE;
           }
         }
-        else if(back == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = backType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
+      }
+      else if(right == TRUE){
+        if (!full) {
+          ControlMsg* btrpkt =
+          (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
+          if (btrpkt == NULL) {
+            return;
+          }
+          //btrpkt->nodeid = TOS_NODE_ID;
+          btrpkt->type = backType;
+          //btrpkt->op = 1;
+          btrpkt->data = 400;
+          receive_point ++;
+          if(receive_point == 6){
+            receive_point = 0;
+          }
+          if(receive_point == send_point){
+            full = TRUE;
           }
         }
-        else if(back == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = backType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
-          }
-        }
-        if(left == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = leftType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
-          }
-        }
-        else if(right == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = rightType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
-          }
-        }
-        if(right = FALSE && left = FALSE && forward = FALSE && back == FALSE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = pauseType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
-          }
-        }
+      }
+      if(right == FALSE && left == FALSE){
         readX = FALSE;
-        readY = FALSE;
       }
     }
   }
 
-  event void Read1.readDone(error_t err, uint16_t value){
+  event void Read2.readDone(error_t err, uint16_t value){
     //遥感Y输入
     if(err == SUCCESS){
-      joyStickY = value
-      readY = TRUE;
       bool left, right, forward, back;
-      left = right = forward = back = FALSE;
-      if(readX == TRUE && readY = TRUE){
-        if(joyStickY <= 0xFF8 - 0x30){
-          forward = TRUE;
-        }
-        else if(joyStickY >= 0xFF8 + 0x30){
-          back = TRUE;
-        }
-        if(joyStickX <= 0xFF8 - 0x30){
-          left = TRUE;
-        }
-        else if(joyStickX >= 0xFF8 + 0x30){
-          right = TRUE;
-        }
-        if(forward == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = forwardType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
+      call Leds.led1Toggle();
+      joyStickY = value;
+      readY = TRUE;
+      forward = FALSE;
+      back = FALSE;
+      if(joyStickY <= 2048 - 500){
+        forward = TRUE;
+      }
+      else if(joyStickY >= 2048 + 500){
+        back = TRUE;
+      }
+      if(forward == TRUE){
+        if (!full) {
+          ControlMsg* btrpkt =
+          (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
+          if (btrpkt == NULL) {
+            return;
+          }
+          //btrpkt->nodeid = TOS_NODE_ID;
+          btrpkt->type = leftType;
+          //btrpkt->op = 1;
+          btrpkt->data = 600;
+          receive_point ++;
+          if(receive_point == 6){
+            receive_point = 0;
+          }
+          if(receive_point == send_point){
+            full = TRUE;
           }
         }
-        else if(back == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = backType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
+      }
+      else if(back == TRUE){
+        if (!full) {
+          ControlMsg* btrpkt =
+          (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
+          if (btrpkt == NULL) {
+            return;
+          }
+          //btrpkt->nodeid = TOS_NODE_ID;
+          btrpkt->type = rightType;
+          //btrpkt->op = 1;
+          btrpkt->data = 600;
+          receive_point ++;
+          if(receive_point == 6){
+            receive_point = 0;
+          }
+          if(receive_point == send_point){
+            full = TRUE;
           }
         }
-        else if(back == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = backType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
-          }
-        }
-        if(left == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = leftType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
-          }
-        }
-        else if(right == TRUE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = rightType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
-          }
-        }
-        if(right = FALSE && left = FALSE && forward = FALSE && back == FALSE){
-          if (!busy) {
-            ControlMsg* btrpkt =
-        (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
-            if (btrpkt == NULL) {
-        return;
-            }
-            btrpkt->nodeid = TOS_NODE_ID;
-            btrpkt->type = pauseType;
-            btrpkt->op = 1;
-            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
-            if (call AMSend.send(AM_BROADCAST_ADDR,
-                &pkt, sizeof(ControlMsg)) == SUCCESS) {
-              busy = TRUE;
-            }
-          }
-        }
-        readX = FALSE;
+      }
+      if(forward == FALSE && back == FALSE){
         readY = FALSE;
+        if(readX == FALSE && readY == FALSE){
+          if (!full) {
+            ControlMsg* btrpkt =
+            (ControlMsg*)(call Packet.getPayload(&sendMessage[receive_point], sizeof(ControlMsg)));
+            if (btrpkt == NULL) {
+              return;
+            }
+            //btrpkt->nodeid = TOS_NODE_ID;
+            btrpkt->type = pauseType;
+            //btrpkt->op = 1;
+            btrpkt->data = 1000/AM_BROADCAST_ADDR*100;
+            receive_point ++;
+            if(receive_point == 6){
+              receive_point = 0;
+            }
+            if(receive_point == send_point){
+              full = TRUE;
+            }
+          }
+        }
       }
     }
   }
+  event void Button.StopDone(error_t error){}
+  event void Button.StartDone(error_t error){}
 }

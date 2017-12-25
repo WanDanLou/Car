@@ -1,6 +1,6 @@
 #include <Timer.h>
 #include "msp430usart.h"
-configuration ButtonC {
+generic configuration ButtonC() {
   provides{
     interface Button;
   }
@@ -15,11 +15,11 @@ implementation {
   APP.ResourceRequested = Msp430Uart0C.ResourceRequested;
   APP.Usart = UsartC.HplMsp430Usart;
   APP.Interrupts = UsartC.HplMsp430UsartInterrupts;*/
-  APP.PortA = GIO.Port60;
-  APP.PortB = GIO.Port21;
-  APP.PortC = GIO.Port61;
-  APP.PortD = GIO.Port23;
-  APP.PortE = GIO.Port62;
-  APP.PortF = GIO.Port26;
+  APP.PortA -> GIO.Port60;
+  APP.PortB -> GIO.Port21;
+  APP.PortC -> GIO.Port61;
+  APP.PortD -> GIO.Port23;
+  APP.PortE -> GIO.Port62;
+  APP.PortF -> GIO.Port26;
   //
 }
