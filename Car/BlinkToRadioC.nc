@@ -54,7 +54,7 @@ implementation {
 
     int type = 0;
     counter++;
-    type = counter%8;
+    type = counter%9;
     type += 2;
     switch(type){
         case 2:
