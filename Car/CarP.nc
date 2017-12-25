@@ -80,7 +80,7 @@ implementation {
     status = forwardType;
     data[2] = status;
     data[3] = value/256;
-    data[4] = value%255;
+    data[4] = value%256;
     return call Resource.request();
   }
   command error_t Car.Back(uint16_t value){

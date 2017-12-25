@@ -15,6 +15,7 @@ module BlinkToRadioC {
 implementation {
 
   uint16_t counter;
+  uint8_t start = 0;
   message_t pkt;
   bool busy = FALSE;
 
@@ -50,25 +51,17 @@ implementation {
   }
 
   event void Timer0.fired() {
+
     int type = 0;
-    int angle = 2000;
     counter++;
     type = counter%8;
-    type += 1;
-    /*
+    type += 2;
     switch(type){
-        case 1:
-        type = counter*50;
-        angle += type;
-        call Car.Angle(angle);
-        break;
         case 2:
         call Car.Forward(500);
-        call Leds.led1Toggle();
         break;
         case 3:
         call Car.Back(500);
-        call Leds.led2Toggle();
         break;
         case 4:
         call Car.Left(500);
@@ -80,31 +73,22 @@ implementation {
         call Car.Pause();
         break;
         case 7:
-        type = counter*50;
-        angle += type;
-        call Car.Angle_Senc(angle);
+        call Car.Angle(1000);
         break;
         case 8:
-        call Car.Angle_Third(type);
+        call Car.Angle(3000);
+        break;
+        case 9:
+        call Car.Angle_Senc(1000);
+        break;
+        case 10:
+        call Car.Angle_Senc(3000);
+        start = 1;
+        call Timer0.stop();
         break;
         default:
-      }*/
+      }
     
-    if (!busy) {
-      BlinkToRadioMsg* btrpkt =
-	(BlinkToRadioMsg*)(call Packet.getPayload(&pkt, sizeof(BlinkToRadioMsg)));
-      if (btrpkt == NULL) {
-	return;
-      }
-      btrpkt->type = type;
-      btrpkt->data = 500;
-      if(type == 1 || type == 7)
-          btrpkt->data += counter*50;
-      if (call AMSend.send(AM_BROADCAST_ADDR,
-          &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
-        busy = TRUE;
-      }
-    }
   }
 
   event void AMSend.sendDone(message_t* msg, error_t err) {
@@ -116,6 +100,9 @@ implementation {
   event void Car.readDone(error_t state, uint16_t data){}
 
   event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
+    if(start == 0){
+      return msg;
+    }
     if (len == sizeof(BlinkToRadioMsg)) {
       BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)payload;
       
